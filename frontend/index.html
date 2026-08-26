@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AegisPay-Controller | Autonomous AI Finance Controller</title>
+  <meta name="description" content="Autonomous Multi-Source Reconciliation, Zero-Drift Invariants, and Forward Cash Forecaster for Track 04 Razorpay AI Buildathon 2026.">
+  <link rel="stylesheet" href="/static/css/styles.css?v=9">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2318181c'/><text y='.75em' x='.2em' font-size='70' fill='%23ffffff'>&#x1F6E1;</text></svg>">
+</head>
+<body>
+
+  <!-- AUTH MODAL: SIGN IN & REGISTER (Feature 6) -->
+  <div class="login-overlay" id="loginModal">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="brand-badge">AEGIS</div>
+        <h2>AegisPay-Controller</h2>
+        <p>Autonomous AI Finance Controller</p>
+      </div>
+
+      <!-- Auth Tabs: Sign In / Register -->
+      <div class="auth-toggle-bar">
+        <button class="auth-tab-btn active" id="authTabSignIn" onclick="Workspace.switchAuthTab('signin')">Sign In</button>
+        <button class="auth-tab-btn" id="authTabRegister" onclick="Workspace.switchAuthTab('register')">Register Merchant</button>
+      </div>
+
+      <!-- Tab 1: Sign In -->
+      <div id="authSignInSection">
+        <div class="login-form">
+          <input type="email" id="loginEmail" class="login-input" placeholder="Email address (e.g. cfo@acme-retail.com)">
+          <input type="password" id="loginPassword" class="login-input" placeholder="Password (e.g. demo2026)">
+          <button class="btn btn-primary login-submit-btn" onclick="Workspace.loginWithCredentials()">Sign In to Workspace</button>
+        </div>
+
+        <div class="login-divider"><span>or continue with a 1-click persona</span></div>
+
+        <div class="demo-login-grid">
+          <button class="demo-login-btn demo-cfo" onclick="Workspace.loginAs('cfo')">
+            <div class="demo-role-label">CFO</div>
+            <div class="demo-role-name">Priya Sharma</div>
+            <div class="demo-role-desc">Full access &middot; Approve journals &middot; Stress testing</div>
+          </button>
+          <button class="demo-login-btn demo-finops" onclick="Workspace.loginAs('finops')">
+            <div class="demo-role-label">FinOps Analyst</div>
+            <div class="demo-role-name">Arjun Mehta</div>
+            <div class="demo-role-desc">Operational access &middot; Triage exceptions &middot; Tax radar</div>
+          </button>
+          <button class="demo-login-btn demo-auditor" onclick="Workspace.loginAs('auditor')">
+            <div class="demo-role-label">External Auditor</div>
+            <div class="demo-role-name">Deepak Verma</div>
+            <div class="demo-role-desc">Read-only &middot; Inspect proofs &middot; Audit certificates</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 2: Register New Merchant -->
+      <div id="authRegisterSection" style="display:none;">
+        <div class="login-form">
+          <input type="text" id="regCompanyName" class="login-input" placeholder="Company / Legal Entity Name (e.g. Apex Retail Pvt Ltd)">
+          <input type="text" id="regContactName" class="login-input" placeholder="Your Full Name (e.g. Neha Kapoor)">
+          <input type="email" id="regEmail" class="login-input" placeholder="Work Email (e.g. neha@apexretail.com)">
+          <input type="password" id="regPassword" class="login-input" placeholder="Create Password">
+          <input type="text" id="regGSTIN" class="login-input" placeholder="GSTIN (Optional, e.g. 27AAACE1234H1Z8)">
+          
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div>
+              <label style="font-size:10.5px; color:var(--text-muted); display:block; margin-bottom:3px;">Business Model</label>
+              <select id="regCategory" class="login-input" style="width:100%;">
+                <option value="UPI & D2C Retail">UPI &amp; D2C Retail</option>
+                <option value="B2B SaaS / Global">B2B SaaS / Global</option>
+                <option value="High-Volume Marketplace">Marketplace</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:10.5px; color:var(--text-muted); display:block; margin-bottom:3px;">Assign Role</label>
+              <select id="regRole" class="login-input" style="width:100%;">
+                <option value="cfo">CFO (Full Access)</option>
+                <option value="finops">FinOps (Analyst)</option>
+                <option value="auditor">Auditor (Read-Only)</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="btn btn-primary login-submit-btn" onclick="Workspace.registerNewMerchant()" style="margin-top:6px;">
+            Create Merchant Workspace
+          </button>
+        </div>
+        <p style="font-size:10.5px; color:var(--text-muted); text-align:center; margin-top:8px;">
+          Automatically generates a synthetic test dataset and sandbox keys for the new merchant.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- AUDIT CERTIFICATE MODAL (Feature 4) -->
+  <div class="audit-cert-overlay" id="auditCertificateModal">
+    <div class="audit-cert-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="font-size:15px; font-weight:800; color:#fff;">Audit Certificate</h3>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-secondary btn-sm" onclick="ExportTools.printAuditCertificate()">Print</button>
+          <button class="btn btn-secondary btn-sm" onclick="ExportTools.closeAuditCertificate()">Close</button>
+        </div>
+      </div>
+      <div id="auditCertificateBody">
+        <!-- Rendered by export_tools.js -->
+      </div>
+    </div>
+  </div>
+
+  <div class="app-container" id="appContainer" style="display:none;">
+
+    <!-- 1. Editorial Top Navbar (Feature 6) -->
+    <header class="top-nav">
+      <div class="brand-block">
+        <div class="brand-badge">AEGIS</div>
+        <div class="brand-details">
+          <h1>
+            AegisPay-Controller
+            <span class="track-tag">Track 04 &#x2022; Razorpay AI Buildathon</span>
+          </h1>
+          <p>Autonomous Multi-Source Reconciliation &amp; Forward Cash Forecaster</p>
+        </div>
+      </div>
+
+      <div class="nav-controls">
+        <!-- Merchant Switcher (Feature 6) -->
+        <div class="merchant-switcher" onclick="Workspace.toggleMerchantDropdown()">
+          <span id="merchantSwitcherLabel" class="merchant-label">Acme Retail Electronics Pvt Ltd</span>
+          <span class="merchant-caret">&#9662;</span>
+          <div class="merchant-dropdown" id="merchantDropdownList">
+            <!-- Rendered by workspace.js -->
+          </div>
+        </div>
+
+        <!-- Scale Selector -->
+        <div class="scale-selector">
+          <button class="scale-btn active" data-scale="50" onclick="App.setScale(50)">50 Records</button>
+          <button class="scale-btn" data-scale="200" onclick="App.setScale(200)">200</button>
+          <button class="scale-btn" data-scale="1000" onclick="App.setScale(1000)">1,000</button>
+          <button class="scale-btn" data-scale="5000" onclick="App.setScale(5000)">5,000</button>
+        </div>
+
+        <div class="engine-status-pill">
+          <span class="status-dot"></span>
+          <span id="sealStatusText">Verified 0.0000 Drift</span>
+        </div>
+
+        <button class="btn btn-primary" id="runReconcileBtn" onclick="App.runFullPipeline()">
+          Run Reconciliation
+        </button>
+
+        <!-- User Block (Feature 6) -->
+        <div class="user-block" id="navUserBlock">
+          <!-- Rendered by workspace.js -->
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="Workspace.logout()" title="Sign out">&#x2190;</button>
+      </div>
+    </header>
+
+    <!-- 2. Bento Financial Overview Grid -->
+    <section class="bento-grid">
+      <!-- KPI 1: Match Rate -->
+      <div class="bento-card">
+        <div class="bento-header">
+          <span class="bento-label">Reconciliation Rate</span>
+          <span class="bento-badge" style="color:var(--accent-emerald);">Target &#8805;85%</span>
+        </div>
+        <div class="bento-value" id="kpiMatchRate" style="color:var(--accent-emerald);">--%</div>
+        <div class="bento-sub" id="kpiMatchSub">-- Matched / -- Exceptions</div>
+      </div>
+
+      <!-- KPI 2: Gross Volume -->
+      <div class="bento-card">
+        <div class="bento-header">
+          <span class="bento-label">Volume Audited</span>
+          <span class="bento-badge">Gross</span>
+        </div>
+        <div class="bento-value" id="kpiGrossVolume">&#8377;0.00</div>
+        <div class="bento-sub" id="kpiSettledSub">Bank Settled: &#8377;0.00</div>
+      </div>
+
+      <!-- KPI 3: MDR & GST -->
+      <div class="bento-card">
+        <div class="bento-header">
+          <span class="bento-label">MDR &amp; 18% GST</span>
+          <span class="bento-badge" style="color:var(--accent-gold);">Fees</span>
+        </div>
+        <div class="bento-value" id="kpiMDRFees" style="color:var(--accent-gold);">&#8377;0.00</div>
+        <div class="bento-sub" id="kpiFeeSub">MDR: &#8377;0.00 | GST: &#8377;0.00</div>
+      </div>
+
+      <!-- KPI 4: Forward Cash -->
+      <div class="bento-card">
+        <div class="bento-header">
+          <span class="bento-label">14-Day Forward Cash</span>
+          <span class="bento-badge">Projection</span>
+        </div>
+        <div class="bento-value" id="kpiForwardCash">&#8377;0.00</div>
+        <div class="bento-sub" id="kpiCashSub">Health: 92/100 | Float: &#8377;0.00</div>
+      </div>
+
+      <!-- KPI 5: Precision Drift -->
+      <div class="bento-card">
+        <div class="bento-header">
+          <span class="bento-label">Precision Residual</span>
+          <span class="bento-badge" style="color:var(--accent-emerald);">Exact</span>
+        </div>
+        <div class="bento-value font-mono" id="kpiPrecisionDrift" style="color:var(--accent-emerald);">&#8377;0.0000</div>
+        <div class="bento-sub" style="color:var(--accent-emerald);">Double-Entry Verified</div>
+      </div>
+    </section>
+
+    <!-- 3. Pipeline Stepper Strip -->
+    <section class="stepper-strip">
+      <div class="step-node completed" id="stepNode0">
+        <div class="step-circle">1</div>
+        <div class="step-info">
+          <span class="step-title">Multi-Source Ingest</span>
+          <span class="step-sub">Gateway, Bank, ERP, Tax</span>
+        </div>
+      </div>
+      <div class="step-sep"></div>
+
+      <div class="step-node completed" id="stepNode1">
+        <div class="step-circle">2</div>
+        <div class="step-info">
+          <span class="step-title">Symbolic Invariant</span>
+          <span class="step-sub">Sub-Paisa Math Verifier</span>
+        </div>
+      </div>
+      <div class="step-sep"></div>
+
+      <div class="step-node completed" id="stepNode2">
+        <div class="step-circle">3</div>
+        <div class="step-info">
+          <span class="step-title">Batch Decomposer</span>
+          <span class="step-sub">Many-to-One Settlement</span>
+        </div>
+      </div>
+      <div class="step-sep"></div>
+
+      <div class="step-node completed" id="stepNode3">
+        <div class="step-circle">4</div>
+        <div class="step-info">
+          <span class="step-title">Honest Exception Triage</span>
+          <span class="step-sub">Root-Cause Diagnostics</span>
+        </div>
+      </div>
+      <div class="step-sep"></div>
+
+      <div class="step-node active" id="stepNode4">
+        <div class="step-circle">5</div>
+        <div class="step-info">
+          <span class="step-title">Cash Forecaster</span>
+          <span class="step-sub">Monte Carlo Liquidity</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3.5 Live Agent Execution Stream (Feature 1) -->
+    <section class="agent-stream-section" id="agentStreamPanel">
+      <div class="stream-header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="stream-pulse"></span>
+          <span style="font-size:12px; font-weight:700; color:#fff;">Live Agent Execution Stream</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="streamToggleBtn" onclick="AgentStream.toggle()">Hide Stream</button>
+      </div>
+      <div class="stream-log-scroll" id="agentStreamLog">
+        <div class="stream-entry stream-info">
+          <span class="stream-ts">[0.00s]</span>
+          <span class="stream-icon">&#x23F3;</span>
+          <span class="stream-msg">Awaiting pipeline execution. Click <strong>Run Reconciliation</strong> to begin.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Navigation Tab Bar -->
+    <nav class="tab-bar">
+      <button class="tab-btn active" data-tab="ledger">
+        <span>Multi-Source Ledger</span>
+        <span class="tab-count" id="tabLedgerBadge">39</span>
+      </button>
+      <button class="tab-btn" data-tab="exceptions">
+        <span>Honest Exception Desk</span>
+        <span class="tab-count" id="tabExceptionsBadge" style="color:var(--accent-gold);">10</span>
+      </button>
+      <button class="tab-btn" data-tab="forecast">
+        <span>Forward Cash Forecaster</span>
+      </button>
+      <button class="tab-btn" data-tab="tax">
+        <span>Tax Compliance Radar</span>
+      </button>
+      <button class="tab-btn" data-tab="copilot">
+        <span>CFO Settlement Copilot</span>
+      </button>
+      <button class="tab-btn" data-tab="benchmarks">
+        <span>Enterprise Scalability</span>
+      </button>
+    </nav>
+
+    <!-- 5. Tab Panes -->
+    <main class="tab-content-area">
+
+      <!-- Tab 1: Multi-Source Ledger -->
+      <div class="tab-pane active" id="tab-ledger">
+        <div class="data-panel">
+          <div class="table-toolbar-strip">
+            <div class="filter-group">
+              <span class="filter-chip active" data-filter="all" onclick="App.setTableFilter('all')">All Matches</span>
+              <span class="filter-chip" data-filter="PERFECT_MATCH" onclick="App.setTableFilter('PERFECT_MATCH')">Exact 1:1</span>
+              <span class="filter-chip" data-filter="BATCH_DECOMPOSED" onclick="App.setTableFilter('BATCH_DECOMPOSED')">Batches</span>
+              <span class="filter-chip" data-filter="FUZZY_RESOLVED" onclick="App.setTableFilter('FUZZY_RESOLVED')">Fuzzy</span>
+              <span class="filter-chip" data-filter="DISPUTE_RECONCILED" onclick="App.setTableFilter('DISPUTE_RECONCILED')">Disputes</span>
+            </div>
+            <div class="export-btn-group">
+              <button class="btn btn-secondary btn-sm" data-perm="export_csv" onclick="ExportTools.downloadCSV(App.reconciliationResult)">Export CSV</button>
+              <button class="btn btn-secondary btn-sm" data-perm="export_json" onclick="ExportTools.downloadJSON(App.reconciliationResult)">Export JSON</button>
+              <button class="btn btn-secondary btn-sm" data-perm="audit_certificate" onclick="ExportTools.showAuditCertificate(App.reconciliationResult)">Audit Certificate</button>
+            </div>
+          </div>
+
+          <div class="table-scroll">
+            <table class="ledger-table">
+              <thead>
+                <tr>
+                  <th>Match ID</th>
+                  <th>Type</th>
+                  <th>Order</th>
+                  <th>Customer</th>
+                  <th>Method</th>
+                  <th>Gross (&#8377;)</th>
+                  <th>MDR</th>
+                  <th>GST</th>
+                  <th>Bank Settled</th>
+                  <th>Drift</th>
+                </tr>
+              </thead>
+              <tbody id="ledgerTableBody">
+                <!-- Rendered dynamically by app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Honest Exception Desk -->
+      <div class="tab-pane" id="tab-exceptions">
+        <div class="data-panel">
+          <div class="table-toolbar-strip">
+            <div>
+              <h3 style="font-size:14px; font-weight:800;">Exception Triage &amp; HITL Resolution</h3>
+              <p style="font-size:11px; color:var(--text-muted);">AI-classified root causes with suggested journal entries for human approval.</p>
+            </div>
+          </div>
+
+          <div class="table-scroll">
+            <table class="ledger-table">
+              <thead>
+                <tr>
+                  <th>Exception ID</th>
+                  <th>Root Cause</th>
+                  <th>Severity</th>
+                  <th>Order / Entity</th>
+                  <th>Variance (&#8377;)</th>
+                  <th>Confidence</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="exceptionsTableBody">
+                <!-- Rendered dynamically by app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Forward Cash Forecaster -->
+      <div class="tab-pane" id="tab-forecast">
+        <div class="forecast-layout">
+          <!-- Stress Simulator Panel (Feature 3) -->
+          <div class="stress-sim-panel" id="stressSimulatorPanel">
+            <h3 style="font-size:13px; font-weight:800; color:#fff; margin-bottom:10px;">What-If Stress Simulator</h3>
+            <div class="stress-slider-group">
+              <div class="stress-slider-item">
+                <label>Daily Sales Growth</label>
+                <input type="range" id="stressGrowth" min="-20" max="50" value="0" oninput="App.onStressSliderChange()">
+                <span id="stressGrowthVal" class="font-mono">0%</span>
+              </div>
+              <div class="stress-slider-item">
+                <label>Refund / Dispute Spike</label>
+                <input type="range" id="stressRefund" min="1" max="15" value="3" oninput="App.onStressSliderChange()">
+                <span id="stressRefundVal" class="font-mono">3%</span>
+              </div>
+              <div class="stress-slider-item">
+                <label>Bank Clearing Lag</label>
+                <input type="range" id="stressClearingLag" min="1" max="3" value="2" step="1" oninput="App.onStressSliderChange()">
+                <span id="stressClearingLagVal" class="font-mono">T+2</span>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm" data-perm="stress_simulator" onclick="App.runStressedForecast()" style="margin-top:8px; width:100%;">Simulate Stress Scenario</button>
+          </div>
+
+          <div class="forecast-main-col">
+            <div class="forecast-card">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <h3 style="font-size:14px; font-weight:800; color:#ffffff;">Forward Cash Position Projection</h3>
+                  <p style="font-size:11px; color:var(--text-muted);">Monte Carlo simulation (500 paths) with 95% confidence bands and T+2 clearing lags.</p>
+                </div>
+                <span class="class-tag perfect">Optimal Runway</span>
+              </div>
+
+              <div class="canvas-container">
+                <canvas id="forecastCanvas"></canvas>
+              </div>
+
+              <div style="display:flex; gap:14px; font-size:11px; color:var(--text-secondary);">
+                <span style="display:flex; align-items:center; gap:5px;">
+                  <span style="width:10px; height:2px; background:#ffffff; display:inline-block;"></span> Projected Balance
+                </span>
+                <span style="display:flex; align-items:center; gap:5px;">
+                  <span style="width:10px; height:10px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); display:inline-block;"></span> 95% Confidence Band
+                </span>
+              </div>
+            </div>
+
+            <div class="insights-panel-box">
+              <h3 style="font-size:13px; font-weight:800; color:#ffffff;">Treasury &amp; Risk Insights</h3>
+              <div id="forecastInsightsList" style="display:flex; flex-direction:column; gap:8px;">
+                <!-- Rendered dynamically by app.js -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: Tax Compliance Radar (Feature 5) -->
+      <div class="tab-pane" id="tab-tax">
+        <div class="data-panel">
+          <div class="table-toolbar-strip">
+            <div>
+              <h3 style="font-size:14px; font-weight:800;">Section 194-O TDS &amp; GST Compliance Radar</h3>
+              <p style="font-size:11px; color:var(--text-muted);">Statutory tax subledger &middot; Form 26AS reconciliation &middot; GSTR-2B input credit matching</p>
+            </div>
+          </div>
+          <div id="taxRadarContent">
+            <p style="font-size:12px; color:var(--text-muted); padding:24px;">Run reconciliation to populate tax compliance data.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 5: CFO Settlement Copilot -->
+      <div class="tab-pane" id="tab-copilot">
+        <div class="copilot-workbench">
+          <div class="chat-top-header">
+            <div>
+              <h4 style="font-size:13px; font-weight:800;">CFO Financial Controller Copilot</h4>
+              <p style="font-size:11px; color:var(--accent-emerald);">Deterministic Knowledge Graph Connected</p>
+            </div>
+            <span class="class-tag perfect">Zero Hallucination</span>
+          </div>
+
+          <div class="chat-thread-scroll" id="chatMessages">
+            <!-- Messages rendered by copilot_chat.js -->
+          </div>
+
+          <div class="suggested-prompts-bar">
+            <span class="prompt-btn" onclick="CopilotChat.sendQuery('Why were there exceptions in this batch?')">
+              Why were there exceptions in this batch?
+            </span>
+            <span class="prompt-btn" onclick="CopilotChat.sendQuery('What is our forward 14-day cash forecast?')">
+              Forward 14-day cash forecast
+            </span>
+            <span class="prompt-btn" onclick="CopilotChat.sendQuery('What was our total MDR fees and GST?')">
+              MDR fees and GST breakdown
+            </span>
+            <span class="prompt-btn" onclick="CopilotChat.sendQuery('Audit order_1001')">
+              Audit order_1001 proof
+            </span>
+          </div>
+
+          <div class="chat-bottom-input">
+            <input type="text" class="chat-input-text" id="chatInput" placeholder="Ask anything about settlements, exceptions, fee schedules, or cash positions...">
+            <button class="btn btn-primary" onclick="CopilotChat.sendQuery()">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 6: Enterprise Benchmark Matrix -->
+      <div class="tab-pane" id="tab-benchmarks">
+        <div class="data-panel">
+          <div class="table-toolbar-strip">
+            <div>
+              <h3 style="font-size:14px; font-weight:800;">Enterprise Scalability &amp; Verification Matrix</h3>
+              <p style="font-size:11px; color:var(--text-muted);">Empirical verification across 50, 200, 1,000, and 5,000 record batches.</p>
+            </div>
+            <button class="btn btn-primary" onclick="App.runBenchmarkMatrix()">
+              Run Live Benchmark
+            </button>
+          </div>
+
+          <div class="table-scroll">
+            <table class="ledger-table">
+              <thead>
+                <tr>
+                  <th>Scale</th>
+                  <th>Total Processed</th>
+                  <th>Matches</th>
+                  <th>Exceptions</th>
+                  <th>Match Rate</th>
+                  <th>Latency</th>
+                  <th>Throughput</th>
+                  <th>Drift</th>
+                </tr>
+              </thead>
+              <tbody id="benchmarkTableBody">
+                <tr>
+                  <td style="font-weight:800; color:#ffffff;">50 Records (Track Baseline)</td>
+                  <td class="font-mono">97</td>
+                  <td class="font-mono" style="color:var(--accent-emerald);">39</td>
+                  <td class="font-mono" style="color:var(--accent-gold);">10</td>
+                  <td class="font-mono" style="font-weight:700;">90.57%</td>
+                  <td class="font-mono">15.2 ms</td>
+                  <td class="font-mono" style="font-weight:800; color:var(--accent-emerald);">6,391 rec/sec</td>
+                  <td class="font-mono" style="color:var(--accent-emerald);">&#8377;0.0000</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:800; color:#ffffff;">200 Records</td>
+                  <td class="font-mono">365</td>
+                  <td class="font-mono" style="color:var(--accent-emerald);">143</td>
+                  <td class="font-mono" style="color:var(--accent-gold);">43</td>
+                  <td class="font-mono" style="font-weight:700;">89.05%</td>
+                  <td class="font-mono">47.8 ms</td>
+                  <td class="font-mono" style="font-weight:800; color:var(--accent-emerald);">7,632 rec/sec</td>
+                  <td class="font-mono" style="color:var(--accent-emerald);">&#8377;0.0000</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:800; color:#ffffff;">1,000 Records</td>
+                  <td class="font-mono">1,778</td>
+                  <td class="font-mono" style="color:var(--accent-emerald);">690</td>
+                  <td class="font-mono" style="color:var(--accent-gold);">212</td>
+                  <td class="font-mono" style="font-weight:700;">89.21%</td>
+                  <td class="font-mono">158.4 ms</td>
+                  <td class="font-mono" style="font-weight:800; color:var(--accent-emerald);">11,228 rec/sec</td>
+                  <td class="font-mono" style="color:var(--accent-emerald);">&#8377;0.0000</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:800; color:#ffffff;">5,000 Records (Stress Scale)</td>
+                  <td class="font-mono">8,846</td>
+                  <td class="font-mono" style="color:var(--accent-emerald);">3,424</td>
+                  <td class="font-mono" style="color:var(--accent-gold);">1,068</td>
+                  <td class="font-mono" style="font-weight:700;">89.02%</td>
+                  <td class="font-mono">1,275.1 ms</td>
+                  <td class="font-mono" style="font-weight:800; color:var(--accent-emerald);">6,938 rec/sec</td>
+                  <td class="font-mono" style="color:var(--accent-emerald);">&#8377;0.0000</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Slide-Over Sheet / Drawer for Proof Inspector (Swiss Style) -->
+  <div class="drawer-overlay-backdrop" id="proofDrawer">
+    <div class="drawer-panel-sheet">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-size:14px; font-weight:800; color:#ffffff;">Settlement Invariant Audit Sheet</h3>
+        <button class="drawer-dismiss-btn" onclick="Visualizers.closeDrawer()">&#x2715;</button>
+      </div>
+
+      <!-- Flow Graph Container (Feature 2) -->
+      <div id="drawerFlowGraph"></div>
+
+      <div id="drawerBody">
+        <!-- Rendered dynamically by visualizers.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/static/js/agent_stream.js?v=9"></script>
+  <script src="/static/js/flow_graph.js?v=9"></script>
+  <script src="/static/js/export_tools.js?v=9"></script>
+  <script src="/static/js/tax_radar.js?v=9"></script>
+  <script src="/static/js/workspace.js?v=9"></script>
+  <script src="/static/js/visualizers.js?v=9"></script>
+  <script src="/static/js/forecast_chart.js?v=9"></script>
+  <script src="/static/js/copilot_chat.js?v=9"></script>
+  <script src="/static/js/app.js?v=9"></script>
+
+</body>
+</html>
