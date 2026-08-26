@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# AegisPay-Controller 1-Click Launch Script (Linux / macOS / Git Bash)
+echo -e "\033[36m🚀 Starting AegisPay-Controller with Full Monitoring Stack...\033[0m"
+
+docker compose --profile monitoring up -d
+
+echo ""
+echo -e "\033[32m================================================================================\033[0m"
+echo -e "\033[32m 🛡️  AEGISPAY-CONTROLLER PLATFORM ACTIVE & RUNNING\033[0m"
+echo -e "\033[90m    Track 04: AI Finance Controller — Razorpay AI Buildathon 2026\033[0m"
+echo -e "\033[32m================================================================================\033[0m"
+echo ""
+echo -e "\033[37m 🌐 ACCESS YOUR SERVICES IN THE BROWSER:\033[0m"
+echo ""
+echo -e "\033[36m 1. 💻 Main Web Application UI:\033[0m"
+echo -e "    👉 \033[33mhttp://localhost:8000\033[0m"
+echo -e "    \033[90mPurpose: Interactive 4-Way Reconciliation, DAG Flow, Cash Forecaster & CFO Copilot\033[0m"
+echo ""
+echo -e "\033[36m 2. 📊 Prometheus Metrics Scraper:\033[0m"
+echo -e "    👉 \033[33mhttp://localhost:9090\033[0m"
+echo -e "    \033[90mPurpose: Real-time telemetry scraper & query engine (Live feed at /metrics)\033[0m"
+echo ""
+echo -e "\033[36m 3. 📈 Grafana Telemetry Dashboard:\033[0m"
+echo -e "    👉 \033[33mhttp://localhost:3000\033[0m"
+echo -e "    \033[90mPurpose: Monitoring dashboard & graphs (Default Login: admin / admin)\033[0m"
+echo ""
+echo -e "\033[36m 4. 🔍 System Healthcheck API:\033[0m"
+echo -e "    👉 \033[33mhttp://localhost:8000/api/status\033[0m"
+echo -e "    \033[90mPurpose: Status verification & zero-drift invariant proof\033[0m"
+echo ""
+echo -e "\033[32m================================================================================\033[0m"
+echo -e "\033[90m 💡 To stop all services anytime: docker compose down\033[0m"
+echo -e "\033[32m================================================================================\033[0m"

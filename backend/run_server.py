@@ -16,8 +16,33 @@ if backend_dir not in sys.path:
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     host = os.getenv("HOST", "0.0.0.0")
-    print("=" * 63)
-    print(f">> Starting AegisPay-Controller Engine on http://{host}:{port}")
-    print("   Track 04: AI Finance Controller - Razorpay AI Buildathon 2026")
-    print("=" * 63)
+    
+    banner = f"""
+================================================================================
+ 🛡️  AEGISPAY-CONTROLLER PLATFORM READY
+    Track 04: AI Finance Controller — Razorpay AI Buildathon 2026
+================================================================================
+
+ 🌐 ACTIVE SERVICE ENDPOINTS:
+
+  1. 💻 Main Web Application:
+     👉 http://localhost:{port}
+     Description: Full interactive UI, 4-Way Reconciliation, Cash Forecaster & CFO Copilot.
+
+  2. 📊 Prometheus Metrics Scraper:
+     👉 http://localhost:9090
+     Description: Real-time telemetry query interface & latency histogram scraper.
+     (Direct metrics feed: http://localhost:{port}/metrics)
+
+  3. 📈 Grafana Telemetry Dashboard:
+     👉 http://localhost:3000
+     Description: Visual monitoring analytics (Default Login: admin / admin).
+
+  4. 🔍 System Healthcheck API:
+     👉 http://localhost:{port}/api/status
+     Description: Zero-drift invariant verification & database readiness status.
+
+================================================================================
+"""
+    print(banner)
     uvicorn.run("app.main:app", host=host, port=port, reload=False)
