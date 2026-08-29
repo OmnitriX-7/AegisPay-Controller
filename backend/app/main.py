@@ -65,3 +65,7 @@ if os.path.exists(FRONTEND_DIR):
     @app.get("/")
     async def serve_frontend():
         return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+
+@app.get("/healthz")
+async def health_check():
+    return {"status": "HEALTHY", "service": "aegispay-controller"}
