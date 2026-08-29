@@ -255,7 +255,10 @@ const App = {
       const recRes = await fetch('/api/reconcile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+        body: JSON.stringify({
+          record_count: this.state.recordScale,
+          merchant_mid: (window.Workspace && Workspace.currentMerchant) ? Workspace.currentMerchant.mid : "MID_RZP_88392"
+        })
       });
       const recData = await recRes.json();
       this.state.reconciliationResult = recData;

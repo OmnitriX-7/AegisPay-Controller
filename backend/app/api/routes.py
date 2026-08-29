@@ -64,6 +64,11 @@ SAMPLE_DIR = Path(__file__).resolve().parent.parent.parent.parent / "sample_data
 
 # --- Request & Payload Schemas ---
 
+class GenerateDatasetPayload(BaseModel):
+    record_count: int = 50
+    seed: Optional[int] = 42
+
+
 class ReconcilePayload(BaseModel):
     record_count: int = 50
     merchant_mid: str = "MID_RZP_88392"
@@ -127,6 +132,17 @@ def system_status():
 
 
 # --- 3. Synthetic Data Generator ---
+@router.post("/api/generate-dataset")
+def generate_dataset_post(payload: Optional[GenerateDatasetPayload] = None):
+    count = payload.record_count if payload else 50
+    return generator.generate_batch(record_count=count)
+
+
+@router.get("/api/generate-dataset")
+def generate_dataset_get(record_count: int = 50):
+    return generator.generate_batch(record_count=record_count)
+
+
 @router.get("/api/generate")
 def generate_dataset(record_count: int = 50):
     raw = generator.generate_batch(record_count=record_count)
