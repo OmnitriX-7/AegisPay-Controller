@@ -331,17 +331,31 @@ async def receive_razorpay_webhook(
     computed_sig = hmac.new(secret.encode("utf-8"), body_bytes, hashlib.sha256).hexdigest()
     is_signature_valid = hmac.compare_digest(computed_sig, x_razorpay_signature) if x_razorpay_signature else False
 
+    event_data: Dict[str, Any] = {}
     try:
-        event_data = json.loads(body_bytes.decode("utf-8"))
+        parsed = json.loads(body_bytes.decode("utf-8"))
+        if isinstance(parsed, dict):
+            event_data = parsed
     except Exception:
         event_data = {"raw_payload": body_bytes.decode("utf-8", errors="ignore")}
 
+    payload_dict = event_data.get("payload") if isinstance(event_data.get("payload"), dict) else {}
+    payment_dict = payload_dict.get("payment") if isinstance(payload_dict.get("payment"), dict) else {}
+    entity_dict = payment_dict.get("entity") if isinstance(payment_dict.get("entity"), dict) else {}
+
+    raw_entity_id = entity_dict.get("id") if isinstance(entity_dict, dict) else None
+    raw_amount = entity_dict.get("amount", 0) if isinstance(entity_dict, dict) else 0
+    try:
+        amount_inr = float(raw_amount) / 100.0
+    except (ValueError, TypeError):
+        amount_inr = 0.0
+
     webhook_record = {
-        "event": event_data.get("event", "payment.captured"),
+        "event": str(event_data.get("event", "payment.captured")),
         "signature_verified": is_signature_valid,
         "received_at": event_data.get("created_at") or 1711958400,
-        "entity_id": event_data.get("payload", {}).get("payment", {}).get("entity", {}).get("id", "pay_live_webhook_01"),
-        "amount_inr": (event_data.get("payload", {}).get("payment", {}).get("entity", {}).get("amount", 0)) / 100.0
+        "entity_id": str(raw_entity_id or "pay_live_webhook_01"),
+        "amount_inr": amount_inr
     }
 
     active_state["live_webhook_events"].append(webhook_record)
