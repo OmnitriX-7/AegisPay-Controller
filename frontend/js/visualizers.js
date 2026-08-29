@@ -23,7 +23,14 @@ const Visualizers = {
     }
   },
 
-  openProofDrawer(match) {
+  openProofDrawer(matchOrId) {
+    let match = matchOrId;
+    if (typeof matchOrId === 'string') {
+      const rec = (window.App && App.state && App.state.reconciliationResult) || (window.App && App.reconciliationResult);
+      match = (rec && rec.matches) ? rec.matches.find(m => m.match_id === matchOrId) : null;
+    }
+    if (!match) return;
+
     const backdrop = document.getElementById('proofDrawer');
     const body = document.getElementById('drawerBody');
     const flowContainer = document.getElementById('drawerFlowGraph');

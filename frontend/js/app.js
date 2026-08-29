@@ -410,7 +410,9 @@ const App = {
     const vis = window.Visualizers || (typeof Visualizers !== 'undefined' ? Visualizers : null);
     const fmt = vis ? vis.formatINR : (v) => `₹${v}`;
 
-    tableBody.innerHTML = matches.map(m => {
+    const displayMatches = matches.slice(0, 100);
+
+    let rowsHtml = displayMatches.map(m => {
       const gw = m.gateway_events[0] || {};
       const bank = m.bank_records[0] || {};
       const proof = m.proof || {};
@@ -422,7 +424,7 @@ const App = {
       if (m.match_type === "DISPUTE_RECONCILED") { tagClass = "dispute"; label = "Dispute / Refund"; }
 
       return `
-        <tr onclick='Visualizers.openProofDrawer(${JSON.stringify(m).replace(/'/g, "&apos;")})'>
+        <tr onclick="Visualizers.openProofDrawer('${m.match_id}')" style="cursor:pointer;">
           <td class="font-mono" style="font-weight:700; color:#ffffff;">${m.match_id}</td>
           <td>
             <span class="class-tag ${tagClass}">
@@ -457,6 +459,18 @@ const App = {
         </tr>
       `;
     }).join('');
+
+    if (matches.length > 100) {
+      rowsHtml += `
+        <tr>
+          <td colspan="10" style="text-align:center; padding:14px; color:var(--text-muted); font-size:11.5px; background:rgba(255,255,255,0.02);">
+            ⚡ Displaying first 100 of <strong>${matches.length.toLocaleString()}</strong> reconciled records. Use Table Search or 'Export CSV' for the entire dataset.
+          </td>
+        </tr>
+      `;
+    }
+
+    tableBody.innerHTML = rowsHtml;
   },
 
   renderExceptions() {
@@ -470,7 +484,9 @@ const App = {
       return;
     }
 
-    tableBody.innerHTML = exceptions.map(exc => `
+    const displayExceptions = exceptions.slice(0, 100);
+
+    let excHtml = displayExceptions.map(exc => `
       <tr>
         <td class="font-mono" style="font-weight:700; color:#ffffff;">${exc.exception_id}</td>
         <td>
@@ -504,6 +520,18 @@ const App = {
         </td>
       </tr>
     `).join('');
+
+    if (exceptions.length > 100) {
+      excHtml += `
+        <tr>
+          <td colspan="8" style="text-align:center; padding:14px; color:var(--text-muted); font-size:11.5px; background:rgba(255,255,255,0.02);">
+            ⚡ Displaying first 100 of <strong>${exceptions.length.toLocaleString()}</strong> triaged exceptions.
+          </td>
+        </tr>
+      `;
+    }
+
+    tableBody.innerHTML = excHtml;
   },
 
   renderForecast() {

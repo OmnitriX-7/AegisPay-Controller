@@ -118,8 +118,9 @@ def save_reconciliation_batch(
     )
     db.add(batch_record)
 
-    # Insert Matched Records
-    for m in result.matches:
+    # Insert Matched Records (cap to top 200 per batch to prevent SQLite lock on high scale 5,000 runs)
+    matches_to_save = result.matches[:200] if len(result.matches) > 200 else result.matches
+    for m in matches_to_save:
         order_id = m.gateway_events[0].order_id if m.gateway_events else (m.erp_invoices[0].order_id if m.erp_invoices else "N/A")
         customer_name = m.gateway_events[0].customer_name if m.gateway_events else (m.erp_invoices[0].customer_name if m.erp_invoices else "N/A")
         
@@ -159,8 +160,9 @@ def save_reconciliation_batch(
         )
         db.add(match_entry)
 
-    # Insert Exceptions
-    for e in result.exceptions:
+    # Insert Exceptions (cap to top 100 per batch)
+    exceptions_to_save = result.exceptions[:100] if len(result.exceptions) > 100 else result.exceptions
+    for e in exceptions_to_save:
         affected_orders = ", ".join(e.affected_order_ids) if e.affected_order_ids else "N/A"
         status_val = e.hitl_status.value if hasattr(e.hitl_status, 'value') else str(e.hitl_status)
 
