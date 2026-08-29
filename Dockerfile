@@ -17,10 +17,14 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend, frontend, tests, and configuration
+# Copy backend, frontend, sample_data, tests, and configuration
 COPY backend/ ./backend/
 COPY frontend/ ./frontend/
+COPY sample_data/ ./sample_data/
 COPY tests/ ./tests/
+
+# Pre-create data directories for SQLite persistence and logs
+RUN mkdir -p /app/data /app/data/logs
 
 # Expose FastAPI & Prometheus port
 EXPOSE 8000

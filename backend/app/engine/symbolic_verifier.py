@@ -7,10 +7,8 @@ import hashlib
 import json
 from typing import List, Dict, Any, Tuple, Optional
 from app.models.ledger_types import (
-    PaymentMethod,
     STANDARD_MDR_RATES,
-    GST_ON_MDR_RATE,
-    TDS_194O_RATE
+    GST_ON_MDR_RATE
 )
 from app.models.schemas import (
     GatewayEvent,

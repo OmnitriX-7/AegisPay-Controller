@@ -4,8 +4,6 @@ Deterministic FinTech Invariants and Exception Taxonomy
 """
 
 from enum import Enum
-from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, Field
 
 
 class TransactionType(str, Enum):

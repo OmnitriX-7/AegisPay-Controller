@@ -6,7 +6,6 @@ Verifies HMAC-SHA256 signature verification, webhook simulation, and Copilot rea
 import hmac
 import hashlib
 import json
-import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 

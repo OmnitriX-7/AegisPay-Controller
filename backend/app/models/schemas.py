@@ -4,10 +4,8 @@ Strict type validation and serialization for multi-source financial records.
 """
 
 from typing import List, Dict, Any, Optional
-from datetime import datetime, date
 from pydantic import BaseModel, Field
 from .ledger_types import (
-    TransactionType,
     PaymentMethod,
     ReconciliationStatus,
     ExceptionRootCause,

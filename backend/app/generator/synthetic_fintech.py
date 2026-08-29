@@ -7,7 +7,7 @@ realistic MDR/GST math, multi-to-one batching, dirty narrations, and authentic e
 import random
 import hashlib
 from datetime import datetime, timedelta
-from typing import Tuple, List, Dict, Any
+from typing import List, Dict, Any
 
 from app.models.ledger_types import (
     PaymentMethod,

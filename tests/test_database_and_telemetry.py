@@ -14,7 +14,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.db.database import Base
-from app.db.models import MerchantModel, ReconciliationBatchModel, MatchedRecordModel
 from app.db import repository
 from app.generator.synthetic_fintech import SyntheticFintechGenerator
 from app.engine.neuro_symbolic_agent import NeuroSymbolicReconciler

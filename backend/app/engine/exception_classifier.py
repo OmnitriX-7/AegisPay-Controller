@@ -4,17 +4,15 @@ Categorizes real fintech reconciliation exceptions without cherry-picking.
 """
 
 import uuid
-from typing import List, Dict, Any, Optional
+from typing import List
 from app.models.ledger_types import (
     ExceptionRootCause,
-    ExceptionSeverity,
-    ConfidenceLevel
+    ExceptionSeverity
 )
 from app.models.schemas import (
     GatewayEvent,
     BankStatementRecord,
     ERPInvoice,
-    TaxRecord,
     ExceptionRecord
 )
 
