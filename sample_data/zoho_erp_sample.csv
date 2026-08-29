@@ -1,0 +1,9 @@
+invoice_number,order_id,customer_name,subtotal,tax_amount,total_amount,date,status
+INV-2026-00101,order_custom_101,Rajesh Khanna,4237.29,762.71,5000.00,2026-04-01,PAID
+INV-2026-00102,order_custom_102,Sunita Rao,10593.22,1906.78,12500.00,2026-04-01,PAID
+INV-2026-00103,order_custom_103,Aakash Verma,2711.86,488.14,3200.00,2026-04-01,PAID
+INV-2026-00104,order_custom_104,Pooja Patel,7542.37,1357.63,8900.00,2026-04-01,PAID
+INV-2026-00105,order_custom_105,Apex Innovations,38135.59,6864.41,45000.00,2026-04-01,PAID
+INV-2026-00106,order_custom_106,Vikram Joshi,1525.42,274.58,1800.00,2026-04-01,PAID
+INV-2026-00107,order_custom_107,Meera Nambiar,12711.86,2288.14,15000.00,2026-04-01,PAID
+INV-2026-00108,order_custom_108,Karan Singhal,5254.24,945.76,6200.00,2026-04-01,PAID

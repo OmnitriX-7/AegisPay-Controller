@@ -1,0 +1,3 @@
+utr,credit_amount,clearing_channel,settlement_batch_id,date,account_tail,narration
+UTR_HDFC_BATCH_001,29060.98,NEFT,setl_batch_001,2026-04-02T04:30:00Z,9042,CMS/RAZORPAY/setl_batch_001/NET_SETTL
+UTR_HDFC_BATCH_002,65880.96,RTGS,setl_batch_002,2026-04-02T05:15:00Z,9042,CMS/RAZORPAY/setl_batch_002/NET_SETTL

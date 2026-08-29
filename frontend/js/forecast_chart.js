@@ -18,20 +18,26 @@ const ForecastChart = {
 
   resize() {
     if (!this.canvas) return;
-    const rect = this.canvas.parentElement.getBoundingClientRect();
+    const parent = this.canvas.parentElement;
+    const rect = parent ? parent.getBoundingClientRect() : null;
+    const w = (rect && rect.width > 50) ? rect.width : (parent && parent.offsetWidth > 50 ? parent.offsetWidth : 720);
+    const h = (rect && rect.height > 50) ? rect.height : (parent && parent.offsetHeight > 50 ? parent.offsetHeight : 240);
     const dpr = window.devicePixelRatio || 1;
-    this.canvas.width = rect.width * dpr;
-    this.canvas.height = rect.height * dpr;
-    this.ctx.scale(dpr, dpr);
-    this.canvas.style.width = `${rect.width}px`;
-    this.canvas.style.height = `${rect.height}px`;
+    this.canvas.width = Math.round(w * dpr);
+    this.canvas.height = Math.round(h * dpr);
+    this.canvas.style.width = `${w}px`;
+    this.canvas.style.height = `${h}px`;
+    if (this.ctx) {
+      this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+      this.ctx.scale(dpr, dpr);
+    }
     this.draw();
   },
 
   updateData(forecastResult) {
     this.data = forecastResult;
     if (!this.canvas) this.init('forecastCanvas');
-    this.draw();
+    this.resize();
   },
 
   draw() {

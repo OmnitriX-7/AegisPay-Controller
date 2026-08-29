@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AegisPay-Controller | Autonomous AI Finance Controller</title>
   <meta name="description" content="Autonomous Multi-Source Reconciliation, Zero-Drift Invariants, and Forward Cash Forecaster for Track 04 Razorpay AI Buildathon 2026.">
-  <link rel="stylesheet" href="/static/css/styles.css?v=9">
+  <link rel="stylesheet" href="/static/css/styles.css?v=14">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2318181c'/><text y='.75em' x='.2em' font-size='70' fill='%23ffffff'>&#x1F6E1;</text></svg>">
 </head>
 <body>
@@ -60,7 +60,25 @@
           <input type="text" id="regCompanyName" class="login-input" placeholder="Company / Legal Entity Name (e.g. Apex Retail Pvt Ltd)">
           <input type="text" id="regContactName" class="login-input" placeholder="Your Full Name (e.g. Neha Kapoor)">
           <input type="email" id="regEmail" class="login-input" placeholder="Work Email (e.g. neha@apexretail.com)">
-          <input type="password" id="regPassword" class="login-input" placeholder="Create Password">
+          <input type="password" id="regPassword" class="login-input" placeholder="Create Password (e.g. Demo@2026)" autocomplete="new-password">
+          
+          <!-- Password Strength Indicator -->
+          <div class="pwd-strength-container" id="pwdStrengthBox" style="margin-top:-4px; margin-bottom:10px; display:none; background:rgba(255,255,255,0.03); padding:8px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.06);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-size:10px; color:var(--text-muted);">Password Strength:</span>
+              <span id="pwdStrengthLabel" style="font-size:10px; font-weight:700; color:var(--accent-crimson);">Too Weak</span>
+            </div>
+            <div style="height:3px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden; margin-bottom:6px;">
+              <div id="pwdStrengthBar" style="height:100%; width:20%; background:var(--accent-crimson); transition:all 0.25s;"></div>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; font-size:10px; color:var(--text-muted);">
+              <span id="pwdReqLen">• 6+ chars</span>
+              <span id="pwdReqUpper">• Uppercase (A-Z)</span>
+              <span id="pwdReqNum">• Number (0-9)</span>
+              <span id="pwdReqSym">• Symbol (!@#$)</span>
+            </div>
+          </div>
+
           <input type="text" id="regGSTIN" class="login-input" placeholder="GSTIN (Optional, e.g. 27AAACE1234H1Z8)">
           
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
@@ -148,15 +166,25 @@
           <span id="sealStatusText">Verified 0.0000 Drift</span>
         </div>
 
+        <button class="btn btn-secondary btn-sm" id="csvIngestModalBtn" onclick="App.openCsvModal()" title="Upload custom settlement and bank CSV datasheets">
+          📂 Ingest Datasheets
+        </button>
+
+        <button class="btn btn-secondary btn-sm" id="simulateWebhookBtn" onclick="App.simulateRazorpayWebhook()" title="Simulate real-time Razorpay webhook event">
+          ⚡ Razorpay Webhook
+        </button>
+
         <button class="btn btn-primary" id="runReconcileBtn" onclick="App.runFullPipeline()">
           Run Reconciliation
         </button>
 
-        <!-- User Block (Feature 6) -->
-        <div class="user-block" id="navUserBlock">
+        <!-- User Block (Profile Modal Trigger) -->
+        <div class="user-block" id="navUserBlock" onclick="Workspace.openProfileModal()" style="cursor:pointer;" title="Click to view User Profile & Workspace Settings">
           <!-- Rendered by workspace.js -->
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="Workspace.logout()" title="Sign out">&#x2190;</button>
+        <button class="btn btn-secondary btn-sm" id="navLogoutBtn" onclick="Workspace.promptLogout()" title="Sign out of AegisPay" style="display:flex; align-items:center; gap:5px; color:#f87171; border-color:rgba(239,68,68,0.3); font-weight:600; font-size:11px;">
+          <span>🚪</span> Log Out
+        </button>
       </div>
     </header>
 
@@ -317,9 +345,9 @@
               <span class="filter-chip" data-filter="DISPUTE_RECONCILED" onclick="App.setTableFilter('DISPUTE_RECONCILED')">Disputes</span>
             </div>
             <div class="export-btn-group">
-              <button class="btn btn-secondary btn-sm" data-perm="export_csv" onclick="ExportTools.downloadCSV(App.reconciliationResult)">Export CSV</button>
-              <button class="btn btn-secondary btn-sm" data-perm="export_json" onclick="ExportTools.downloadJSON(App.reconciliationResult)">Export JSON</button>
-              <button class="btn btn-secondary btn-sm" data-perm="audit_certificate" onclick="ExportTools.showAuditCertificate(App.reconciliationResult)">Audit Certificate</button>
+              <button class="btn btn-secondary btn-sm" data-perm="export_csv" onclick="ExportTools.downloadCSV(App.state?.reconciliationResult)">Export CSV</button>
+              <button class="btn btn-secondary btn-sm" data-perm="export_json" onclick="ExportTools.downloadJSON(App.state?.reconciliationResult)">Export JSON</button>
+              <button class="btn btn-secondary btn-sm" data-perm="audit_certificate" onclick="ExportTools.showAuditCertificate(App.state?.reconciliationResult)">Audit Certificate</button>
             </div>
           </div>
 
@@ -460,9 +488,11 @@
           <div class="chat-top-header">
             <div>
               <h4 style="font-size:13px; font-weight:800;">CFO Financial Controller Copilot</h4>
-              <p style="font-size:11px; color:var(--accent-emerald);">Deterministic Knowledge Graph Connected</p>
+              <p style="font-size:11px; color:var(--accent-emerald);">Deterministic Knowledge Graph &amp; Gemini LLM Connected</p>
             </div>
-            <span class="class-tag perfect">Zero Hallucination</span>
+            <span class="class-tag perfect" id="copilotModelBadge" title="Google Gemini 2.5 Flash Autonomous Engine | Platform-Managed Centralized Intelligence">
+              🟢 Gemini 2.5 Flash Active
+            </span>
           </div>
 
           <div class="chat-thread-scroll" id="chatMessages">
@@ -470,17 +500,17 @@
           </div>
 
           <div class="suggested-prompts-bar">
+            <span class="prompt-btn" onclick="CopilotChat.sendQuery('Draft formal dispute letter to Razorpay Support regarding fee overcharges')">
+              ✉️ Draft Dispute Notice to Razorpay
+            </span>
+            <span class="prompt-btn" onclick="CopilotChat.sendQuery('Audit Section 194-O TDS discrepancy vs Form 26AS')">
+              🏛️ Audit Sec 194-O TDS Gap
+            </span>
+            <span class="prompt-btn" onclick="CopilotChat.sendQuery('Explain our 14-day forward cash runway and liquidity health')">
+              📈 14-Day Cash Runway Analysis
+            </span>
             <span class="prompt-btn" onclick="CopilotChat.sendQuery('Why were there exceptions in this batch?')">
-              Why were there exceptions in this batch?
-            </span>
-            <span class="prompt-btn" onclick="CopilotChat.sendQuery('What is our forward 14-day cash forecast?')">
-              Forward 14-day cash forecast
-            </span>
-            <span class="prompt-btn" onclick="CopilotChat.sendQuery('What was our total MDR fees and GST?')">
-              MDR fees and GST breakdown
-            </span>
-            <span class="prompt-btn" onclick="CopilotChat.sendQuery('Audit order_1001')">
-              Audit order_1001 proof
+              🚨 Triage Batch Exceptions
             </span>
           </div>
 
@@ -586,16 +616,172 @@
     </div>
   </div>
 
+  <!-- CUSTOM DATASHEET INGEST MODAL -->
+  <div class="login-overlay" id="csvIngestModal" style="display:none;">
+    <div class="login-card" style="max-width:760px; width:92%; text-align:left; max-height:90vh; overflow-y:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="brand-badge" style="width:28px; height:28px; font-size:11px;">CSV</div>
+          <h3 style="font-size:16px; font-weight:800; color:#fff;">Custom Datasheet Ingestion</h3>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="App.closeCsvModal()">✕</button>
+      </div>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
+        Upload or paste raw CSV datasheets to reconcile multi-source financial ledgers with sub-paisa 0.0000 INR zero-drift invariance.
+      </p>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:14px; background:rgba(255,255,255,0.03); padding:10px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
+        <span style="font-size:11.5px; font-weight:600; color:#fff;">⚡ Quick Judge Test:</span>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-sm" onclick="App.loadSampleCsvs()">⚡ 1-Click Load Sample Datasheets</button>
+          <a href="/api/samples/download/gateway" class="btn btn-secondary btn-sm" download style="text-decoration:none;">📥 Razorpay Template</a>
+          <a href="/api/samples/download/bank" class="btn btn-secondary btn-sm" download style="text-decoration:none;">📥 Bank Template</a>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#fff; display:block; margin-bottom:4px;">1. Payment Gateway Settlement CSV *</label>
+          <textarea id="csvGatewayInput" class="login-input font-mono" style="height:100px; font-size:10px; resize:vertical;" placeholder="order_id,payment_id,amount,method,fee,tax,net..."></textarea>
+        </div>
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#fff; display:block; margin-bottom:4px;">2. Bank Statement UTR Credits CSV</label>
+          <textarea id="csvBankInput" class="login-input font-mono" style="height:100px; font-size:10px; resize:vertical;" placeholder="utr,credit_amount,clearing_channel,date..."></textarea>
+        </div>
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#fff; display:block; margin-bottom:4px;">3. ERP Sales Invoices CSV (Optional)</label>
+          <textarea id="csvErpInput" class="login-input font-mono" style="height:100px; font-size:10px; resize:vertical;" placeholder="invoice_number,order_id,customer_name,total_amount..."></textarea>
+        </div>
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#fff; display:block; margin-bottom:4px;">4. Statutory Tax &amp; TDS Ledger CSV (Optional)</label>
+          <textarea id="csvTaxInput" class="login-input font-mono" style="height:100px; font-size:10px; resize:vertical;" placeholder="order_id,gstin,taxable_value,tds_194o..."></textarea>
+        </div>
+      </div>
+
+      <div id="csvModalStatus" style="font-size:11.5px; color:var(--accent-emerald); margin-bottom:12px; font-weight:600;"></div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn btn-secondary" onclick="App.closeCsvModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="App.submitCustomCsvs()">🚀 Reconcile Datasheets</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- UNIVERSAL CUSTOM NOTIFICATION / ALERT MODAL (Replaces browser "localhost:8000 says") -->
+  <div class="login-overlay" id="customAlertModal" style="display:none; z-index:999999;">
+    <div class="login-card" style="max-width:440px; width:90%; text-align:center; padding:24px 20px; border:1px solid rgba(255,255,255,0.12); box-shadow:0 20px 50px rgba(0,0,0,0.85); background:#18181b; border-radius:12px;">
+      <div id="customAlertIcon" style="font-size:32px; margin-bottom:8px;">⚡</div>
+      <h3 id="customAlertTitle" style="font-size:16px; font-weight:800; color:#fff; margin-bottom:10px;">Notification</h3>
+      <div id="customAlertMessage" style="font-size:12.5px; color:#d4d4d8; line-height:1.6; margin-bottom:20px; white-space:pre-line; text-align:left; background:rgba(0,0,0,0.35); padding:12px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); font-family:var(--font-sans);"></div>
+      <button class="btn btn-primary" id="customAlertOkBtn" onclick="AegisNotice.closeAlert()" style="width:100%; padding:10px; font-weight:700;">OK</button>
+    </div>
+  </div>
+
+  <!-- LOGOUT CONFIRMATION MODAL -->
+  <div class="login-overlay" id="logoutConfirmModal" style="display:none; z-index:9999;">
+    <div class="login-card" style="max-width:380px; width:90%; text-align:center; padding:26px 22px;">
+      <div style="font-size:32px; margin-bottom:8px;">👋</div>
+      <h3 style="font-size:16px; font-weight:800; color:#fff; margin-bottom:6px;">Confirm Sign Out</h3>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;" id="logoutConfirmText">
+        Are you sure you want to end your current session?
+      </p>
+      <div style="display:flex; justify-content:center; gap:10px;">
+        <button class="btn btn-secondary" style="flex:1;" onclick="Workspace.closeLogoutModal()">Cancel</button>
+        <button class="btn btn-primary" style="flex:1; background:var(--accent-crimson); border-color:var(--accent-crimson);" onclick="Workspace.confirmLogout()">Yes, Sign Out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- USER PROFILE & WORKSPACE MODAL -->
+  <div class="login-overlay" id="userProfileModal" style="display:none; z-index:9998;">
+    <div class="login-card" style="max-width:620px; width:92%; text-align:left; max-height:88vh; overflow-y:auto; padding:26px;">
+      <!-- Header with Close Button -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; border-bottom:1px solid rgba(255,255,255,0.07); padding-bottom:14px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div id="profileModalAvatar" class="user-avatar" style="width:44px; height:44px; font-size:18px; font-weight:800;">P</div>
+          <div>
+            <h3 id="profileModalName" style="font-size:16px; font-weight:800; color:#fff; margin-bottom:2px;">Priya Sharma</h3>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span id="profileModalEmail" style="font-size:11px; color:var(--text-muted);">cfo@acme-retail.com</span>
+              <span id="profileModalRoleBadge" class="class-tag perfect" style="font-size:10px; padding:2px 8px;">CFO</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="Workspace.closeProfileModal()" style="font-size:14px;">✕</button>
+      </div>
+
+      <!-- Merchant Workspace Details Card -->
+      <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:14px 16px; margin-bottom:16px;">
+        <div style="font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent-gold); margin-bottom:8px;">Active Merchant Workspace</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div>
+            <div style="font-size:10px; color:var(--text-muted);">Legal Entity</div>
+            <div id="profileModalMerchantName" style="font-size:12px; font-weight:700; color:#fff;">Acme Retail Electronics Pvt Ltd</div>
+          </div>
+          <div>
+            <div style="font-size:10px; color:var(--text-muted);">Razorpay MID</div>
+            <div id="profileModalMerchantMid" class="font-mono" style="font-size:12px; color:var(--accent-emerald);">MID_RZP_88392</div>
+          </div>
+          <div>
+            <div style="font-size:10px; color:var(--text-muted);">GSTIN</div>
+            <div id="profileModalGstin" class="font-mono" style="font-size:12px; color:#fff;">27AABCA1234F1Z5</div>
+          </div>
+          <div>
+            <div style="font-size:10px; color:var(--text-muted);">Business Model</div>
+            <div id="profileModalCategory" style="font-size:12px; color:#fff;">UPI &amp; Domestic Cards</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Role Permissions Matrix -->
+      <div style="margin-bottom:16px;">
+        <div style="font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-bottom:8px;">Role-Based Access &amp; Entitlements</div>
+        <div id="profileModalPermissions" style="display:flex; flex-wrap:wrap; gap:6px;">
+          <!-- Populated by workspace.js -->
+        </div>
+      </div>
+
+      <!-- Gemini AI Autonomous Engine Status (Platform-Managed) -->
+      <div style="background:rgba(16,185,129,0.04); border:1px solid rgba(16,185,129,0.18); border-radius:10px; padding:14px 16px; margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:16px;">🧠</span>
+            <div>
+              <div style="font-size:12px; font-weight:700; color:#fff;">Google Gemini 2.5 Flash Autonomous Engine</div>
+              <div style="font-size:10px; color:var(--text-muted);">Platform-Managed Centralized AI Intelligence</div>
+            </div>
+          </div>
+          <span class="class-tag perfect" style="font-size:10px; padding:3px 8px;">🟢 Active &amp; Operational</span>
+        </div>
+        <p style="font-size:11px; color:var(--text-muted); margin-top:6px; line-height:1.5; margin-bottom:0;">
+          Centrally managed across all merchant workspaces. Powers real-time dispute recovery drafts to Razorpay support, Section 194-O TDS audits, and 14-day cash runway scenario reasoning.
+        </p>
+      </div>
+
+      <!-- Cryptographic Security Seal & Quick Actions -->
+      <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.07); padding-top:14px;">
+        <div style="font-size:10px; color:var(--text-muted);">
+          🔒 Audit Session: <span id="profileSessionHash" class="font-mono" style="color:var(--accent-emerald);">ae7f...3b91</span>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-secondary btn-sm" onclick="Workspace.closeProfileModal()">Close</button>
+          <button class="btn btn-secondary btn-sm" style="color:var(--accent-crimson); border-color:rgba(239,68,68,0.3);" onclick="Workspace.closeProfileModal(); Workspace.promptLogout();">Log Out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
-  <script src="/static/js/agent_stream.js?v=9"></script>
-  <script src="/static/js/flow_graph.js?v=9"></script>
-  <script src="/static/js/export_tools.js?v=9"></script>
-  <script src="/static/js/tax_radar.js?v=9"></script>
-  <script src="/static/js/workspace.js?v=9"></script>
-  <script src="/static/js/visualizers.js?v=9"></script>
-  <script src="/static/js/forecast_chart.js?v=9"></script>
-  <script src="/static/js/copilot_chat.js?v=9"></script>
-  <script src="/static/js/app.js?v=9"></script>
+  <script src="/static/js/notifications.js?v=20"></script>
+  <script src="/static/js/agent_stream.js?v=20"></script>
+  <script src="/static/js/flow_graph.js?v=20"></script>
+  <script src="/static/js/export_tools.js?v=20"></script>
+  <script src="/static/js/tax_radar.js?v=20"></script>
+  <script src="/static/js/workspace.js?v=20"></script>
+  <script src="/static/js/visualizers.js?v=20"></script>
+  <script src="/static/js/forecast_chart.js?v=21"></script>
+  <script src="/static/js/copilot_chat.js?v=20"></script>
+  <script src="/static/js/app.js?v=20"></script>
 
 </body>
 </html>

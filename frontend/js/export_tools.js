@@ -10,8 +10,11 @@ const ExportTools = {
   },
 
   downloadCSV(reconciliationResult) {
-    const r = reconciliationResult || (window.App && App.reconciliationResult);
-    if (!r || !r.matches) { alert('No reconciliation data to export. Please run reconciliation first.'); return; }
+    const r = reconciliationResult || (window.App && (App.state?.reconciliationResult || App.reconciliationResult));
+    if (!r || !r.matches) {
+      if (window.AegisNotice) AegisNotice.toast('No reconciliation data to export. Please run reconciliation first.', 'error');
+      return;
+    }
 
     const headers = [
       'Match ID', 'Type', 'Order ID', 'Customer Name', 'Payment Method',
@@ -42,11 +45,15 @@ const ExportTools = {
     a.download = `aegispay_reconciliation_export_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+    if (window.AegisNotice) AegisNotice.toast('Reconciled dataset downloaded as CSV!');
   },
 
   downloadJSON(reconciliationResult) {
-    const r = reconciliationResult || (window.App && App.reconciliationResult);
-    if (!r) { alert('No reconciliation data to export. Please run reconciliation first.'); return; }
+    const r = reconciliationResult || (window.App && (App.state?.reconciliationResult || App.reconciliationResult));
+    if (!r) {
+      if (window.AegisNotice) AegisNotice.toast('No reconciliation data to export. Please run reconciliation first.', 'error');
+      return;
+    }
     const json = JSON.stringify(r, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -55,11 +62,15 @@ const ExportTools = {
     a.download = `aegispay_ledger_${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    if (window.AegisNotice) AegisNotice.toast('Full ledger downloaded as JSON!');
   },
 
   showAuditCertificate(reconciliationResult) {
-    const r = reconciliationResult || (window.App && App.reconciliationResult);
-    if (!r) { alert('No reconciliation data available. Please run reconciliation first.'); return; }
+    const r = reconciliationResult || (window.App && (App.state?.reconciliationResult || App.reconciliationResult));
+    if (!r) {
+      if (window.AegisNotice) AegisNotice.toast('No reconciliation data available. Please run reconciliation first.', 'error');
+      return;
+    }
 
     const modal = document.getElementById('auditCertificateModal');
     const body = document.getElementById('auditCertificateBody');

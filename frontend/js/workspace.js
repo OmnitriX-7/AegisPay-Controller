@@ -1,6 +1,7 @@
 /**
- * AegisPay-Controller: Multi-Merchant Workspace, Login & Registration
- * Supports Sign In, New Merchant Registration, and RBAC Persona switching.
+ * AegisPay-Controller: Multi-Merchant Workspace, Authentication & User Profile
+ * Supports Sign In, Registration with duplicate checks, password strength validation,
+ * RBAC Persona switching, and interactive User Profile & Workspace Settings.
  */
 
 const Workspace = {
@@ -37,19 +38,39 @@ const Workspace = {
       label: 'Chief Financial Officer',
       shortLabel: 'CFO',
       permissions: ['approve_journal', 'dismiss_exception', 'export_csv', 'export_json', 'audit_certificate', 'stress_simulator', 'view_tax_radar', 'run_benchmarks', 'copilot_query'],
-      color: '#f59e0b'
+      color: '#f59e0b',
+      permLabels: [
+        'Approve Journal Entries',
+        'Dismiss Exceptions',
+        'Export Cryptographic Audit Seals',
+        'Run 14-Day Monte Carlo Forecaster',
+        'Inspect Section 194-O Tax Radar',
+        'Execute Scalability Benchmarks',
+        'Autonomous CFO Copilot Reasoning'
+      ]
     },
     finops: {
       label: 'FinOps Analyst',
       shortLabel: 'FinOps',
       permissions: ['dismiss_exception', 'export_csv', 'export_json', 'copilot_query', 'view_tax_radar'],
-      color: '#3b82f6'
+      color: '#3b82f6',
+      permLabels: [
+        'Dismiss Exceptions',
+        'Export Reconciled Datasets',
+        'Inspect Section 194-O Tax Radar',
+        'CFO Copilot Operational Queries'
+      ]
     },
     auditor: {
       label: 'External Auditor (Read-Only)',
       shortLabel: 'Auditor',
       permissions: ['audit_certificate', 'view_tax_radar'],
-      color: '#10b981'
+      color: '#10b981',
+      permLabels: [
+        'Inspect Cryptographic Seals (Read-Only)',
+        'Print Audit Certificates',
+        'Statutory Tax Compliance Verification'
+      ]
     }
   },
 
@@ -60,6 +81,8 @@ const Workspace = {
   },
 
   init() {
+    this.initPasswordChecker();
+
     const saved = localStorage.getItem('aegispay_session');
     if (saved) {
       try {
@@ -74,6 +97,103 @@ const Workspace = {
       } catch (e) { /* fall through to login */ }
     }
     this.showLoginModal();
+  },
+
+  // --- Password Strength Checker ---
+  initPasswordChecker() {
+    const regPwd = document.getElementById('regPassword');
+    if (!regPwd) return;
+
+    regPwd.addEventListener('input', () => {
+      const val = regPwd.value;
+      const box = document.getElementById('pwdStrengthBox');
+      if (!box) return;
+
+      if (!val) {
+        box.style.display = 'none';
+        return;
+      }
+      box.style.display = 'block';
+
+      const isLen = val.length >= 6;
+      const isUpper = /[A-Z]/.test(val);
+      const isNum = /[0-9]/.test(val);
+      const isSym = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(val);
+
+      this.updateReqBadge('pwdReqLen', isLen);
+      this.updateReqBadge('pwdReqUpper', isUpper);
+      this.updateReqBadge('pwdReqNum', isNum);
+      this.updateReqBadge('pwdReqSym', isSym);
+
+      let score = 0;
+      if (isLen) score++;
+      if (isUpper) score++;
+      if (isNum) score++;
+      if (isSym) score++;
+
+      const bar = document.getElementById('pwdStrengthBar');
+      const label = document.getElementById('pwdStrengthLabel');
+
+      if (bar && label) {
+        if (score <= 1) {
+          bar.style.width = '25%';
+          bar.style.background = 'var(--accent-crimson)';
+          label.textContent = 'Too Weak';
+          label.style.color = 'var(--accent-crimson)';
+        } else if (score === 2) {
+          bar.style.width = '50%';
+          bar.style.background = 'var(--accent-gold)';
+          label.textContent = 'Fair';
+          label.style.color = 'var(--accent-gold)';
+        } else if (score === 3) {
+          bar.style.width = '75%';
+          bar.style.background = '#3b82f6';
+          label.textContent = 'Good';
+          label.style.color = '#3b82f6';
+        } else {
+          bar.style.width = '100%';
+          bar.style.background = 'var(--accent-emerald)';
+          label.textContent = 'Strong ✓';
+          label.style.color = 'var(--accent-emerald)';
+        }
+      }
+    });
+  },
+
+  updateReqBadge(elemId, isValid) {
+    const el = document.getElementById(elemId);
+    if (!el) return;
+    if (isValid) {
+      el.style.color = 'var(--accent-emerald)';
+      el.style.fontWeight = '700';
+    } else {
+      el.style.color = 'var(--text-muted)';
+      el.style.fontWeight = '400';
+    }
+  },
+
+  validatePassword(val) {
+    if (!val || val.length < 6) return false;
+    const isUpper = /[A-Z]/.test(val);
+    const isNum = /[0-9]/.test(val);
+    const isSym = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(val);
+    return isUpper && isNum && isSym;
+  },
+
+  // --- Registered Accounts Storage ---
+  getRegisteredUsers() {
+    try {
+      const stored = localStorage.getItem('aegispay_registered_users');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  },
+
+  saveRegisteredUser(userData) {
+    const users = this.getRegisteredUsers();
+    users.push(userData);
+    localStorage.setItem('aegispay_registered_users', JSON.stringify(users));
   },
 
   switchAuthTab(tab) {
@@ -129,22 +249,51 @@ const Workspace = {
   },
 
   loginWithCredentials() {
-    const email = document.getElementById('loginEmail')?.value;
+    const email = document.getElementById('loginEmail')?.value.trim();
     const password = document.getElementById('loginPassword')?.value;
 
     if (!email || !password) {
-      alert('Please enter email and password.');
+      if (window.AegisNotice) AegisNotice.toast('Please enter email and password.', 'error');
       return;
     }
 
+    // 1. Check demo credentials
     for (const [roleKey, cred] of Object.entries(this.demoCredentials)) {
-      if (cred.email === email && cred.password === password) {
+      if (cred.email.toLowerCase() === email.toLowerCase() && cred.password === password) {
         this.loginAs(roleKey);
         return;
       }
     }
 
-    // Default dynamic login for custom accounts
+    // 2. Check registered custom users
+    const registered = this.getRegisteredUsers();
+    const match = registered.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (match) {
+      const roleKey = match.roleKey || 'cfo';
+      const role = this.roles[roleKey] || this.roles.cfo;
+      this.currentUser = {
+        name: match.name,
+        email: match.email,
+        role: roleKey,
+        roleLabel: role.label,
+        roleShortLabel: role.shortLabel,
+        permissions: role.permissions,
+        color: role.color
+      };
+
+      const matchedMerchant = this.merchants.find(m => m.name === match.companyName) || this.merchants[0];
+      this.currentMerchant = matchedMerchant;
+
+      localStorage.setItem('aegispay_session', JSON.stringify({
+        user: this.currentUser,
+        merchant: this.currentMerchant
+      }));
+
+      this.onAuthSuccess();
+      return;
+    }
+
+    // 3. Fallback standard login for custom inputs
     const roleKey = 'cfo';
     const role = this.roles[roleKey];
     this.currentUser = {
@@ -176,7 +325,40 @@ const Workspace = {
     const category = document.getElementById('regCategory')?.value || 'D2C Retail';
 
     if (!companyName || !contactName || !email || !password) {
-      alert('Please fill out Company Name, Contact Name, Email, and Password.');
+      if (window.AegisNotice) AegisNotice.toast('Please fill out Company Name, Contact Name, Email, and Password.', 'error');
+      return;
+    }
+
+    // --- Duplicate Account Check ---
+    const lowerEmail = email.toLowerCase();
+    const isDemoEmail = Object.values(this.demoCredentials).some(c => c.email.toLowerCase() === lowerEmail);
+    const isCustomEmail = this.getRegisteredUsers().some(u => u.email.toLowerCase() === lowerEmail);
+    const isDuplicateCompany = this.merchants.some(m => m.name.toLowerCase() === companyName.toLowerCase());
+
+    if (isDemoEmail || isCustomEmail || isDuplicateCompany) {
+      if (window.AegisNotice) {
+        AegisNotice.alert(`An account with this email address (${email}) or company name is already registered.\n\nRedirecting you to Sign In...`, 'Account Exists', '⚠️');
+      }
+      this.switchAuthTab('signin');
+      const loginEmailInp = document.getElementById('loginEmail');
+      if (loginEmailInp) {
+        loginEmailInp.value = email;
+      }
+      const loginPwdInp = document.getElementById('loginPassword');
+      if (loginPwdInp) loginPwdInp.focus();
+      return;
+    }
+
+    // --- Password Strength Check ---
+    if (!this.validatePassword(password)) {
+      if (window.AegisNotice) {
+        AegisNotice.alert(
+          'Please ensure your password has:\n• At least 6 characters\n• At least one uppercase letter (A-Z)\n• At least one number (0-9)\n• At least one symbol (!@#$%^&*)\n\nExample: Demo@2026',
+          'Password Requirements Not Met',
+          '⚠️'
+        );
+      }
+      document.getElementById('regPassword')?.focus();
       return;
     }
 
@@ -203,13 +385,23 @@ const Workspace = {
       color: role.color
     };
 
+    // Save registered user & session
+    this.saveRegisteredUser({
+      name: contactName,
+      email: email,
+      roleKey: roleKey,
+      companyName: companyName
+    });
+
     localStorage.setItem('aegispay_session', JSON.stringify({
       user: this.currentUser,
       merchant: this.currentMerchant,
       customMerchants: [newMerchant]
     }));
 
-    alert(`🎉 Merchant workspace "${companyName}" registered successfully! Logged in as ${role.label}.`);
+    if (window.AegisNotice) {
+      AegisNotice.toast(`Merchant workspace "${companyName}" registered! Logged in as ${role.label}.`, 'success');
+    }
     this.onAuthSuccess();
   },
 
@@ -229,11 +421,115 @@ const Workspace = {
     }
   },
 
+  // --- Logout & Confirmation Modal ---
+  promptLogout() {
+    const textEl = document.getElementById('logoutConfirmText');
+    if (textEl && this.currentUser) {
+      textEl.textContent = `Are you sure you want to sign out of ${this.currentUser.name}'s session (${this.currentUser.roleShortLabel})?`;
+    }
+    const modal = document.getElementById('logoutConfirmModal');
+    if (modal) {
+      modal.classList.add('active');
+      modal.style.display = 'flex';
+    }
+  },
+
+  closeLogoutModal() {
+    const modal = document.getElementById('logoutConfirmModal');
+    if (modal) {
+      modal.classList.remove('active');
+      modal.style.display = 'none';
+    }
+  },
+
+  confirmLogout() {
+    this.closeLogoutModal();
+    this.logout();
+  },
+
   logout() {
     localStorage.removeItem('aegispay_session');
     this.currentUser = null;
     this.currentMerchant = null;
     this.showLoginModal();
+  },
+
+  // --- Interactive Profile Page / Modal ---
+  openProfileModal() {
+    if (!this.currentUser) return;
+
+    const modal = document.getElementById('userProfileModal');
+    if (!modal) return;
+
+    // User Identity
+    const avatar = document.getElementById('profileModalAvatar');
+    if (avatar) {
+      avatar.textContent = this.currentUser.name.charAt(0).toUpperCase();
+      avatar.style.background = this.currentUser.color || '#f59e0b';
+    }
+    const nameEl = document.getElementById('profileModalName');
+    if (nameEl) nameEl.textContent = this.currentUser.name;
+
+    const emailEl = document.getElementById('profileModalEmail');
+    if (emailEl) emailEl.textContent = this.currentUser.email;
+
+    const roleBadge = document.getElementById('profileModalRoleBadge');
+    if (roleBadge) {
+      roleBadge.textContent = this.currentUser.roleShortLabel;
+      roleBadge.style.borderColor = this.currentUser.color;
+      roleBadge.style.color = this.currentUser.color;
+    }
+
+    // Merchant Details
+    const m = this.currentMerchant || this.merchants[0];
+    const mName = document.getElementById('profileModalMerchantName');
+    if (mName) mName.textContent = m.name;
+
+    const mMid = document.getElementById('profileModalMerchantMid');
+    if (mMid) mMid.textContent = m.mid;
+
+    const mGstin = document.getElementById('profileModalGstin');
+    if (mGstin) mGstin.textContent = m.gstin;
+
+    const mCat = document.getElementById('profileModalCategory');
+    if (mCat) mCat.textContent = m.type;
+
+    // Role Permissions Matrix
+    const permContainer = document.getElementById('profileModalPermissions');
+    if (permContainer) {
+      const roleObj = this.roles[this.currentUser.role] || this.roles.cfo;
+      permContainer.innerHTML = (roleObj.permLabels || []).map(p => `
+        <span style="font-size:10.5px; font-weight:600; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); padding:3px 9px; border-radius:4px; color:#fff;">
+          ✓ ${p}
+        </span>
+      `).join('');
+    }
+
+    // Session Fingerprint Hash
+    const sessionHashEl = document.getElementById('profileSessionHash');
+    if (sessionHashEl) {
+      sessionHashEl.textContent = 'auth_sha256_' + Math.abs(this.hashCode(this.currentUser.email + (m ? m.mid : ''))).toString(16).padEnd(8, '0');
+    }
+
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+  },
+
+  closeProfileModal() {
+    const modal = document.getElementById('userProfileModal');
+    if (modal) {
+      modal.classList.remove('active');
+      modal.style.display = 'none';
+    }
+  },
+
+  hashCode(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return hash;
   },
 
   hasPermission(perm) {
@@ -256,13 +552,32 @@ const Workspace = {
   updateNavUI() {
     const userBlock = document.getElementById('navUserBlock');
     if (userBlock && this.currentUser) {
+      userBlock.style.cursor = 'pointer';
+      userBlock.title = 'Click to open User Profile & Workspace Settings';
+      userBlock.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        Workspace.openProfileModal();
+      };
       userBlock.innerHTML = `
         <div class="user-avatar" style="background:${this.currentUser.color};">${this.currentUser.name.charAt(0).toUpperCase()}</div>
         <div class="user-info-text">
-          <div class="user-name">${this.currentUser.name}</div>
-          <div class="user-role-label" style="color:${this.currentUser.color};">${this.currentUser.roleShortLabel}</div>
+          <div class="user-name" style="display:flex; align-items:center; gap:4px;">
+            ${this.currentUser.name}
+            <span style="font-size:8px; opacity:0.6; color:#fff;">▼</span>
+          </div>
+          <div class="user-role-label" style="color:${this.currentUser.color}; font-weight:700;">${this.currentUser.roleShortLabel}</div>
         </div>
       `;
+    }
+
+    const logoutBtn = document.getElementById('navLogoutBtn') || document.querySelector('button[title*="Sign out"]');
+    if (logoutBtn) {
+      logoutBtn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        Workspace.promptLogout();
+      };
     }
 
     const merchantLabel = document.getElementById('merchantSwitcherLabel');

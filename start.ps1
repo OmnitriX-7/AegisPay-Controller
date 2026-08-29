@@ -1,5 +1,5 @@
 # AegisPay-Controller 1-Click Launch Script (Windows PowerShell)
-Write-Host "Starting AegisPay-Controller with Full Monitoring Stack..." -ForegroundColor Cyan
+Write-Host "Starting AegisPay-Controller with Full Monitoring Stack (Prometheus + Loki + Grafana)..." -ForegroundColor Cyan
 
 docker compose up -d
 
@@ -19,11 +19,15 @@ Write-Host " 2. Prometheus Metrics Scraper:" -ForegroundColor Cyan
 Write-Host "    http://localhost:9090" -ForegroundColor Yellow
 Write-Host "    Purpose: Real-time telemetry scraper and query engine (Live feed at /metrics)" -ForegroundColor Gray
 Write-Host ""
-Write-Host " 3. Grafana Telemetry Dashboard:" -ForegroundColor Cyan
+Write-Host " 3. Grafana Unified Monitoring Portal (Metrics + Loki Logs):" -ForegroundColor Cyan
 Write-Host "    http://localhost:3000" -ForegroundColor Yellow
-Write-Host "    Purpose: Monitoring dashboard and graphs (Default Login: admin / admin)" -ForegroundColor Gray
+Write-Host "    Purpose: Dashboards, Prometheus graphs, and Loki Log Explorer (Default: admin / admin)" -ForegroundColor Gray
 Write-Host ""
-Write-Host " 4. System Healthcheck API:" -ForegroundColor Cyan
+Write-Host " 4. Loki Log Ingestion Engine:" -ForegroundColor Cyan
+Write-Host "    http://localhost:3100" -ForegroundColor Yellow
+Write-Host "    Purpose: Centralized log aggregation and LogQL querying" -ForegroundColor Gray
+Write-Host ""
+Write-Host " 5. System Healthcheck API:" -ForegroundColor Cyan
 Write-Host "    http://localhost:8000/api/status" -ForegroundColor Yellow
 Write-Host "    Purpose: Status verification and zero-drift invariant proof" -ForegroundColor Gray
 Write-Host ""

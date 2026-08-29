@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # AegisPay-Controller 1-Click Launch Script (Linux / macOS / Git Bash)
-echo -e "\033[36m🚀 Starting AegisPay-Controller with Full Monitoring Stack...\033[0m"
+echo -e "\033[36m🚀 Starting AegisPay-Controller with Full Monitoring Stack (Prometheus + Loki + Grafana)...\033[0m"
 
-docker compose --profile monitoring up -d
+docker compose up -d
 
 echo ""
 echo -e "\033[32m================================================================================\033[0m"
@@ -20,11 +20,15 @@ echo -e "\033[36m 2. 📊 Prometheus Metrics Scraper:\033[0m"
 echo -e "    👉 \033[33mhttp://localhost:9090\033[0m"
 echo -e "    \033[90mPurpose: Real-time telemetry scraper & query engine (Live feed at /metrics)\033[0m"
 echo ""
-echo -e "\033[36m 3. 📈 Grafana Telemetry Dashboard:\033[0m"
+echo -e "\033[36m 3. 📈 Grafana Unified Monitoring Portal (Metrics + Loki Logs):\033[0m"
 echo -e "    👉 \033[33mhttp://localhost:3000\033[0m"
-echo -e "    \033[90mPurpose: Monitoring dashboard & graphs (Default Login: admin / admin)\033[0m"
+echo -e "    \033[90mPurpose: Dashboards, Prometheus graphs, and Loki Log Explorer (Default: admin / admin)\033[0m"
 echo ""
-echo -e "\033[36m 4. 🔍 System Healthcheck API:\033[0m"
+echo -e "\033[36m 4. 🪵 Loki Log Ingestion Engine:\033[0m"
+echo -e "    👉 \033[33mhttp://localhost:3100\033[0m"
+echo -e "    \033[90mPurpose: Centralized log aggregation and LogQL querying\033[0m"
+echo ""
+echo -e "\033[36m 5. 🔍 System Healthcheck API:\033[0m"
 echo -e "    👉 \033[33mhttp://localhost:8000/api/status\033[0m"
 echo -e "    \033[90mPurpose: Status verification & zero-drift invariant proof\033[0m"
 echo ""

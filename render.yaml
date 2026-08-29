@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: aegispay-controller
+    env: docker
+    dockerfilePath: ./Dockerfile
+    region: oregon
+    plan: free
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /api/status
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: HOST
+        value: 0.0.0.0
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DATABASE_URL
+        value: sqlite:///./data/aegispay.db
+      - key: RAZORPAY_WEBHOOK_SECRET
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false

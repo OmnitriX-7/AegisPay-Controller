@@ -1,0 +1,17 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "python.analysis.extraPaths": [
+            "${workspaceFolder}/backend",
+            "./backend"
+        ],
+        "python.autoComplete.extraPaths": [
+            "${workspaceFolder}/backend",
+            "./backend"
+        ]
+    }
+}

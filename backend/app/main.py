@@ -5,7 +5,14 @@ Razorpay AI Buildathon 2026
 """
 
 import os
+from pathlib import Path
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
+
+# Load environment variables from .env file at workspace root
+env_path = Path(__file__).resolve().parent.parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -13,14 +20,20 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router as api_router
 from app.db.database import init_db
+from app.telemetry.logger import get_logger
+
+logger = get_logger("server")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: initialize database tables & default seeds
+    logger.info("Initializing AegisPay-Controller database and default seeds...")
     init_db()
+    logger.info("AegisPay-Controller initialized successfully and ready for transactions.")
     yield
     # Shutdown: clean up if needed
+    logger.info("AegisPay-Controller shutting down cleanly.")
 
 
 app = FastAPI(

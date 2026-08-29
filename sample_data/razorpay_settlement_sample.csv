@@ -1,0 +1,9 @@
+order_id,payment_id,amount,method,fee,tax,net,settlement_id,customer_name,timestamp
+order_custom_101,pay_rzp_101,5000.00,UPI,0.00,0.00,5000.00,setl_batch_001,Rajesh Khanna,2026-04-01T10:15:00Z
+order_custom_102,pay_rzp_102,12500.00,CREDIT_CARD,250.00,45.00,12205.00,setl_batch_001,Sunita Rao,2026-04-01T11:20:00Z
+order_custom_103,pay_rzp_103,3200.00,DEBIT_CARD,28.80,5.18,3166.02,setl_batch_001,Aakash Verma,2026-04-01T12:05:00Z
+order_custom_104,pay_rzp_104,8900.00,NETBANKING,178.00,32.04,8689.96,setl_batch_001,Pooja Patel,2026-04-01T14:45:00Z
+order_custom_105,pay_rzp_105,45000.00,CORPORATE_CARD,1350.00,243.00,43407.00,setl_batch_002,Apex Innovations,2026-04-01T15:30:00Z
+order_custom_106,pay_rzp_106,1800.00,UPI,0.00,0.00,1800.00,setl_batch_002,Vikram Joshi,2026-04-01T16:10:00Z
+order_custom_107,pay_rzp_107,15000.00,CREDIT_CARD,390.00,70.20,14539.80,setl_batch_002,Meera Nambiar,2026-04-01T17:00:00Z
+order_custom_108,pay_rzp_108,6200.00,DEBIT_CARD,55.80,10.04,6134.16,setl_batch_002,Karan Singhal,2026-04-01T17:45:00Z

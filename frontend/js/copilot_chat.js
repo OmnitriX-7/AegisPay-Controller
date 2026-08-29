@@ -1,6 +1,6 @@
 /**
  * AegisPay-Controller: CFO Copilot & Settlement Q&A Chat Client
- * Swiss Modernist high-contrast layout, zero hallucination.
+ * Hybrid Neuro-Symbolic Agent: Google Gemini 2.0 Flash + Deterministic Invariant Fallback.
  */
 
 const CopilotChat = {
@@ -20,14 +20,54 @@ const CopilotChat = {
       });
     }
 
+    this.renderKeyBadge();
+
     // Default Greeting Message
     if (this.messagesContainer && this.messagesContainer.children.length === 0) {
       this.addAiMessage(
-        "👋 Hello! I am your **Autonomous Financial Controller Copilot**.\n\n" +
-        "I have verified the active multi-source reconciliation batch and forward cash positions. " +
-        "You can ask me to explain any fee variance, audit specific order invariants, or simulate liquidity scenarios."
+        "👋 Hello! I am your **Autonomous Financial Controller & Settlement Copilot**.\n\n" +
+        "I have verified the active multi-source reconciliation batch, tax deductions, and forward cash positions. " +
+        "You can ask me to draft formal Razorpay dispute notices, audit Section 194-O TDS gaps, or simulate liquidity scenarios.",
+        [
+          "Draft formal dispute letter to Razorpay Support",
+          "Why were there exceptions in this batch?",
+          "What was our total MDR fees and GST?",
+          "What is our forward 14-day cash forecast?"
+        ]
       );
     }
+  },
+
+  getApiKey() {
+    return localStorage.getItem('aegispay_gemini_key') || '';
+  },
+
+  setApiKey(key) {
+    if (key) {
+      localStorage.setItem('aegispay_gemini_key', key.trim());
+    } else {
+      localStorage.removeItem('aegispay_gemini_key');
+    }
+    this.renderKeyBadge();
+  },
+
+  promptApiKey() {
+    const current = this.getApiKey();
+    const entered = prompt(
+      "Enter your Google Gemini API Key for Live Generative Reasoning:\n(Leave blank to use offline deterministic invariant solver)",
+      current
+    );
+    if (entered !== null) {
+      this.setApiKey(entered);
+    }
+  },
+
+  renderKeyBadge() {
+    const badge = document.getElementById('copilotModelBadge');
+    if (!badge) return;
+    badge.className = 'class-tag perfect';
+    badge.innerHTML = '🟢 Gemini 2.5 Flash Active';
+    badge.title = 'Google Gemini 2.5 Flash is centrally active for all workspace users';
   },
 
   sendQuery(presetText) {
@@ -44,21 +84,28 @@ const CopilotChat = {
 
     // Show AI Thinking indicator
     const thinkingId = this.addThinkingIndicator();
+    const apiKey = this.getApiKey();
 
     // Call API Endpoint
     fetch('/api/copilot/query', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: text })
+      body: JSON.stringify({
+        query: text,
+        api_key: apiKey || null
+      })
     })
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
     .then(data => {
       this.removeThinkingIndicator(thinkingId);
       this.addAiMessage(data.answer, data.suggested_followups);
     })
     .catch(err => {
       this.removeThinkingIndicator(thinkingId);
-      this.addAiMessage(`❌ Error processing query: ${err.message}`);
+      this.addAiMessage(`❌ Error querying copilot: ${err.message}`);
     });
   },
 
@@ -66,7 +113,7 @@ const CopilotChat = {
     if (!this.messagesContainer) return;
     const msg = document.createElement('div');
     msg.className = 'chat-msg user';
-    msg.innerHTML = `<div>${text}</div>`;
+    msg.innerHTML = `<div>${this.escapeHtml(text)}</div>`;
     this.messagesContainer.appendChild(msg);
     this.scrollToBottom();
   },
@@ -76,9 +123,8 @@ const CopilotChat = {
     const msg = document.createElement('div');
     msg.className = 'chat-msg ai';
 
-    // Simple markdown renderer for bold, code, lists, and headers
     let html = (markdownText || '')
-      .replace(/### (.*?)\n/g, '<h4 style="font-size:13px; font-weight:800; color:#fff; margin:4px 0 8px;">$1</h4>')
+      .replace(/### (.*?)\n/g, '<h4 style="font-size:13px; font-weight:800; color:#fff; margin:6px 0 8px;">$1</h4>')
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/`([^`]+)`/g, '<code class="font-mono" style="background:rgba(255,255,255,0.08); padding:2px 5px; border-radius:4px; font-size:11px; color:var(--accent-emerald);">$1</code>')
       .replace(/• (.*?)\n/g, '<div style="margin-left:8px; margin-bottom:4px;">• $1</div>')
@@ -108,7 +154,7 @@ const CopilotChat = {
     msg.className = 'chat-msg ai';
     msg.innerHTML = `
       <div style="color:var(--text-muted); font-style:italic;">
-        Auditing double-entry ledger invariants...
+        Auditing double-entry ledger invariants & financial proofs...
       </div>
     `;
     this.messagesContainer.appendChild(msg);
@@ -126,6 +172,10 @@ const CopilotChat = {
     if (this.messagesContainer) {
       this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
     }
+  },
+
+  escapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 };
 

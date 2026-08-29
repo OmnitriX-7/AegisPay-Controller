@@ -186,3 +186,10 @@ class CopilotQueryResponse(BaseModel):
     itemized_breakdown: Optional[Dict[str, Any]] = None
     suggested_followups: List[str] = []
     confidence_score: float = 0.98
+
+
+class ResolveExceptionPayload(BaseModel):
+    """Human-in-the-loop exception resolution payload"""
+    exception_id: str
+    action: str = "APPROVE_JOURNAL"
+    notes: Optional[str] = None

@@ -173,12 +173,25 @@ class NeuroSymbolicReconciler:
             if b.id in reconciled_bank_ids or b.type != "CREDIT":
                 continue
 
-            batch_match = re.search(r'(setl_batch_\d+|setl_\d+)', b.description)
-            if not batch_match:
-                continue
+            batch_match = re.search(r'(setl_batch_\w+|setl_\w+|batch_\w+|batch\w+)', b.description, re.IGNORECASE)
+            batch_id = None
+            if batch_match:
+                batch_key = batch_match.group(1).lower()
+                for k in gw_by_batch:
+                    if k.lower() == batch_key or batch_key in k.lower() or k.lower() in batch_key:
+                        batch_id = k
+                        break
 
-            batch_id = batch_match.group(1)
-            cluster_gws = [g for g in gw_by_batch.get(batch_id, []) if g.id not in reconciled_gw_ids]
+            cluster_gws = [g for g in gw_by_batch.get(batch_id or "", []) if g.id not in reconciled_gw_ids]
+
+            # If no direct batch match, search by amount cluster
+            if not cluster_gws:
+                for k, g_list in gw_by_batch.items():
+                    candidates = [g for g in g_list if g.id not in reconciled_gw_ids]
+                    if candidates and abs(sum(g.net_amount for g in candidates) - b.amount) < 0.05:
+                        cluster_gws = candidates
+                        batch_id = k
+                        break
 
             if not cluster_gws:
                 continue

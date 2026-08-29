@@ -67,7 +67,7 @@ const Visualizers = {
         </div>
         <div style="font-size:10.5px; color:var(--text-muted); font-family:var(--font-mono); word-break:break-all; display:flex; justify-content:space-between; align-items:center; background:var(--bg-surface-1); border:1px solid var(--border-subtle); padding:6px 10px; border-radius:4px;">
           <span>SHA-256: ${(proof.proof_hash || '').slice(0, 26)}...</span>
-          <span style="cursor:pointer; color:#ffffff; font-weight:700; text-decoration:underline;" onclick="navigator.clipboard.writeText('${proof.proof_hash || ''}'); alert('SHA-256 Audit Seal Copied!');">Copy Seal</span>
+          <span style="cursor:pointer; color:#ffffff; font-weight:700; text-decoration:underline;" onclick="navigator.clipboard.writeText('${proof.proof_hash || ''}'); (window.AegisNotice ? AegisNotice.toast('SHA-256 Audit Seal Copied to Clipboard!') : null);">Copy Seal</span>
         </div>
       </div>
 
